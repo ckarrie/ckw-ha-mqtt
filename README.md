@@ -91,3 +91,22 @@ Der Prozess bricht mit `Ctrl-C` nicht ab, daher muss er in einem neuen Terminal 
     
 ## Integration in Homeassistant
 
+Der Input-Status steht nun als `binary_sensor` zur Verfügung, z.B. falls der Hostname vom Rasperry
+"pischeune" ist, steht nun die Entität `binary_sensor.pischeune_input_0` für Input 0 bereit.
+
+### Entities-Card
+
+```yaml
+cards:
+  - type: entities
+    entities:
+      - entity: binary_sensor.pischeune_input_0
+      - entity: binary_sensor.pischeune_input_1
+      - entity: binary_sensor.pischeune_input_2
+      - entity: switch.pischeune_switch_0
+      - entity: switch.pischeune_switch_1
+```
+![Darstellung als Card](ha-entites-card.png)
+
+### Abzeichen
+![Darstellung als Abzeichen](ha-badges.png)
