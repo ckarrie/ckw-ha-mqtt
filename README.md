@@ -47,7 +47,7 @@ cd ~/src/
 git clone https://github.com/ckarrie/ckw-ha-mqtt
 ```
 
-### Usage
+### Start und Start-Parameter
 
 ```
 python ~/src/ckw-ha-mqtt/mqtt.py -i <IP Adress of MQTT broker> -t <MQTT root opic>
@@ -55,6 +55,15 @@ python ~/src/ckw-ha-mqtt/mqtt.py -i <IP Adress of MQTT broker> -t <MQTT root opi
 
 - `-i` = IP-Adresse des MQTT-Brokers (z.B. mosquitto), Default ist `192.168.178.71`
 - `-t` = Wurzel-Topic der MQTT-Message, Default ist `winden`
+
+### Autostart mit `screen`
+
+- `crontab -e`
+- Add
+
+    `@reboot  sleep 60 && /usr/bin/screen -dmS py_mqtt python /home/pi/src/ckw-ha-mqtt/mqtt.py -i 192.168.178.71 -t myhomename`
+    
+- Mittels `screen -r py_mqtt` kann nun direkt auf die `screen`-Instanz zugegriffen werden (Debugging, Live-Logs)
 
 ### Tests
 
@@ -74,7 +83,11 @@ python ~/src/ckw-ha-mqtt/test_piface.py
     [2020-12-02 14:29:22.525871] Switch 1 released
     [2020-12-02 14:29:25.063868] Switch 3 pressed
     [2020-12-02 14:29:26.353478] Switch 3 released
-    ```        
+    ```
+  
+### Troubleshooting
+
+Der Prozess bricht mit `Ctrl-C` nicht ab, daher muss er in einem neuen Terminal mitels `killall -9 python` gekilled werden
     
 ## Integration in Homeassistant
 
