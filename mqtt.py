@@ -139,6 +139,8 @@ def publish_homeassistant(client):
         },
         "icon": "mdi:temperature-celsius"
     }
+    temp_conig_topic = "homeassistant/sensor/{}/cputemp/config".format(hostname)
+    client.publish(temp_conig_topic, json.dumps(temp_payload))
 
 
 def on_connect(client, userdata, flags, rc):
