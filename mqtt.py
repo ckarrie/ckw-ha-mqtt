@@ -67,6 +67,13 @@ for i in range(8):
 
 
 def publish_homeassistant(client):
+    """
+    Using HomeAssistant Discovery
+    see https://www.home-assistant.io/docs/mqtt/discovery/
+
+    :param client: mqttclient
+    :return: None
+    """
     homeassistant_switch_topic = "homeassistant/switch/{}/sw{}/config"
     for switch_port in range(8):
         topic = homeassistant_switch_topic.format(hostname, switch_port)
