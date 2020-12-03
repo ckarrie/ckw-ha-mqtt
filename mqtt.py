@@ -1,3 +1,4 @@
+# coding=utf-8
 import pifacedigitalio
 import socket
 import paho.mqtt.client as mqtt
@@ -8,6 +9,7 @@ import json
 import uuid
 import re
 import argparse
+from gpiozero import CPUTemperature
 
 MQTT_BROKER_HOST = '192.168.178.71'
 MQTT_ROOT_TOPIC = 'winden'
@@ -35,11 +37,14 @@ mqtt_topic = '{}/{}/piface/'.format(MQTT_ROOT_TOPIC, hostname)
 mqtt_input_topic = '{}in/'.format(mqtt_topic)
 mqtt_output_topic = '{}out/'.format(mqtt_topic)
 mqtt_device_topic = '{}infos/'.format(mqtt_topic)
+mqtt_device_dt_topic = '{}datetime'.format(mqtt_device_topic)
+mqtt_device_temp_topic = '{}cputemp'.format(mqtt_device_topic)
 #mqtt_output_state_topic = '{}state/out/'.format(mqtt_topic)
 #mqtt_input_state_topic = '{}state/in/'.format(mqtt_topic)
 
 client = mqtt.Client()
 pifacedigital = pifacedigitalio.PiFaceDigital()
+cpu = CPUTemperature()
 
 in_states = [0, 0, 0, 0, 0, 0, 0, 0]
 out_states = [0, 0, 0, 0, 0, 0, 0, 0]
@@ -115,6 +120,26 @@ def publish_homeassistant(client):
         client.publish(topic, json.dumps(payload))
         print "[MQTT] published topic={}".format(topic)
 
+    # Temp
+    temp_payload = {
+        "name": "{} Temp CPU".format(hostname),
+        "unique_id": "{}-cputemp".format(hostname),
+        "unit_of_measurement": "°C",
+        "state_topic": mqtt_device_temp_topic,
+        "device_class": "temperature",
+        "device": {
+            "identifiers": hostname + "-wlan",
+            "connections": [
+                ["mac", mac_address]
+            ],
+            "manufacturer": "Raspberry Pi Foundation",
+            "model": "Raspberry Pi 1",
+            "name": hostname,
+            "sw_version": "1"
+        },
+        "icon": "mdi:temperature-celsius"
+    }
+
 
 def on_connect(client, userdata, flags, rc):
     client.subscribe(mqtt_output_topic + '+')
@@ -182,7 +207,8 @@ def publish_inout_state(client, piface_chip):
                 state_text = "true"
             client.publish(topic, state_text)
             print "[MQTT] Publish topic='{}' payload='{}'".format(topic, state_text)
-        client.publish(mqtt_device_topic + 'datetime', datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        client.publish(mqtt_device_dt_topic, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        client.publish(mqtt_device_temp_topic, cpu.temperature)
         time.sleep(20)
 
 

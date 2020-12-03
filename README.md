@@ -37,6 +37,7 @@ sudo apt install screen git python-pip
 sudo pip install pifacecommon
 sudo pip install pifacedigitalio
 sudo pip install paho-mqtt
+sudo pip install gpiozero
 ```
 
 ### Installation ckw-ha-mqtt
