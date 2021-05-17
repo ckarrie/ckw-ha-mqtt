@@ -156,14 +156,15 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
-    print("[MQTT] Received: topic='{}' payload='{}'".format(msg.topic, str(msg.payload)))
+    payload = msg.payload.decode("utf-8") 
+    print("[MQTT] Received: topic='{}' payload='{}'".format(msg.topic, payload))
     if msg.topic in output_topics.keys():
         pin = output_topics[msg.topic]
-        if str(msg.payload) in ['ON', '1', 'true', b'true']:
+        if payload in ['ON', '1', 'true']:
             pifacedigital.output_pins[pin].turn_on()
             out_states[pin] = 1
             # client.publish(mqtt_output_state_topic + str(pin), "true")
-        elif str(msg.payload) in ['OFF', '0', 'false', b'falso']:
+        elif payload in ['OFF', '0', 'false']:
             pifacedigital.output_pins[pin].turn_off()
             out_states[pin] = 0
             # client.publish(mqtt_output_state_topic + str(pin), "OFF")
