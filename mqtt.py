@@ -1,8 +1,7 @@
-# coding=utf-8
 import pifacedigitalio
 import socket
 import paho.mqtt.client as mqtt
-import thread
+import _thread
 import time
 import datetime
 import json
@@ -29,9 +28,9 @@ mac_address = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
 
 startup_msg = "Starting up ckw-ha-mqtt for host={} with broker={}, topic={}".format(hostname, MQTT_BROKER_HOST, MQTT_ROOT_TOPIC)
 
-print "=" * len(startup_msg)
-print startup_msg
-print "=" * len(startup_msg)
+print("=" * len(startup_msg))
+print(startup_msg)
+print("=" * len(startup_msg))
 
 mqtt_topic = '{}/{}/piface/'.format(MQTT_ROOT_TOPIC, hostname)
 mqtt_input_topic = '{}in/'.format(mqtt_topic)
@@ -99,7 +98,7 @@ def publish_homeassistant(client):
             "icon": "mdi:lightbulb-on"
         }
         client.publish(topic, json.dumps(payload))
-        print "[MQTT] published topic={}".format(topic)
+        print("[MQTT] published topic={}".format(topic))
 
     # Device classes: https://developers.home-assistant.io/docs/en/entity_binary_sensor.html#available-device-classes
     homeassistant_binary_sensor_topic = "homeassistant/binary_sensor/{}/bs{}/config"
@@ -125,7 +124,7 @@ def publish_homeassistant(client):
             # "icon": "mdi:electric-switch"
         }
         client.publish(topic, json.dumps(payload))
-        print "[MQTT] published topic={}".format(topic)
+        print("[MQTT] published topic={}".format(topic))
 
     # Temp
     temp_payload = {
@@ -152,12 +151,12 @@ def publish_homeassistant(client):
 
 def on_connect(client, userdata, flags, rc):
     client.subscribe(mqtt_output_topic + '+')
-    print "[MQTT] Connected, waiting for Topics at '{}'".format(mqtt_output_topic)
+    print("[MQTT] Connected, waiting for Topics at '{}'".format(mqtt_output_topic))
     # publish_homeassistant(client)
 
 
 def on_message(client, userdata, msg):
-    print "[MQTT] Received: topic='{}' payload='{}'".format(msg.topic, str(msg.payload))
+    print("[MQTT] Received: topic='{}' payload='{}'".format(msg.topic, str(msg.payload)))
     if msg.topic in output_topics.keys():
         pin = output_topics[msg.topic]
         if str(msg.payload) in ['ON', '1', 'true']:
@@ -181,21 +180,21 @@ def on_message(client, userdata, msg):
 def switch_pressed(event):
     #event.chip.output_pins[event.pin_num].turn_on()
     in_states[event.pin_num] = 1
-    print "[PiFace] Switch {} pressed".format(event.pin_num)
+    print("[PiFace] Switch {} pressed".format(event.pin_num))
     topic = mqtt_input_topic + '{}'.format(event.pin_num)
     value = "true"
     client.publish(topic, value)
-    print "[MQTT] published: {}={}".format(topic, value)
+    print("[MQTT] published: {}={}".format(topic, value))
 
 
 def switch_unpressed(event):
     #event.chip.output_pins[event.pin_num].turn_off()
     in_states[event.pin_num] = 0
-    print "[PiFace] Switch {} released".format(event.pin_num)
+    print("[PiFace] Switch {} released".format(event.pin_num))
     topic = mqtt_input_topic + '{}'.format(event.pin_num)
     value = "false"
     client.publish(topic, value)
-    print "[MQTT] published: {}={}".format(topic, value)
+    print("[MQTT] published: {}={}".format(topic, value))
 
 
 def publish_inout_state(client, piface_chip):
@@ -206,7 +205,7 @@ def publish_inout_state(client, piface_chip):
             if pin_state == 1:
                 state_text = "true"
             client.publish(topic, state_text)
-            print "[MQTT] Publish topic='{}' payload='{}'".format(topic, state_text)
+            print("[MQTT] Publish topic='{}' payload='{}'".format(topic, state_text))
         for topic, pin in input_topics.items():
             pin_state = piface_chip.input_pins[pin].value
             if in_states[pin] != pin_state:
@@ -215,7 +214,7 @@ def publish_inout_state(client, piface_chip):
             if pin_state == 1:
                 state_text = "true"
             client.publish(topic, state_text)
-            print "[MQTT] Publish topic='{}' payload='{}'".format(topic, state_text)
+            print("[MQTT] Publish topic='{}' payload='{}'".format(topic, state_text))
         client.publish(mqtt_device_dt_topic, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         client.publish(mqtt_device_temp_topic, cpu.temperature)
         time.sleep(20)
@@ -224,7 +223,7 @@ def publish_inout_state(client, piface_chip):
 def publish_homeassistant_discovery(client):
     while True:
         publish_homeassistant(client)
-        print "[Main] Publish publish_homeassistant for discovery"
+        print("[Main] Publish publish_homeassistant for discovery")
         time.sleep(600)
 
 
@@ -233,8 +232,8 @@ if __name__ == "__main__":
     client.on_message = on_message
     client.connect(MQTT_BROKER_HOST, 1883, 60)
     client.loop_start()
-    thread.start_new_thread(publish_inout_state, (client, pifacedigital))
-    thread.start_new_thread(publish_homeassistant_discovery, (client,))
+    _thread.start_new_thread(publish_inout_state, (client, pifacedigital))
+    _thread.start_new_thread(publish_homeassistant_discovery, (client,))
 
     listener = pifacedigitalio.InputEventListener(chip=pifacedigital)
     for i in range(4):
