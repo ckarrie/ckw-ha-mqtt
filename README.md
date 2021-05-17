@@ -3,7 +3,7 @@
 Schickt PiFace Digital Daten via mqtt an einen mqtt-Broker und man kann somit via 
 Homeassistant den Raspi steuern bzw. den Status der Ports abfragen. 
 
-Für Python 2.x
+Für Python 3.x
 
 # Vorarbeiten
 
@@ -16,7 +16,7 @@ Für Python 2.x
 
 - Raspberry Pi OS auf SD-Karte
 - SD-Karte in PC > leere "ssh"-Datei in boot-Partition erstellen
-- Python 2.x
+- Python 3.x
 
 # Installation auf Raspberry Pi 1
 
@@ -33,11 +33,11 @@ sudo raspi-config
 ### Installation Softwarepakete
 
 ```
-sudo apt install screen git python-pip
-sudo pip install pifacecommon
-sudo pip install pifacedigitalio
-sudo pip install paho-mqtt
-sudo pip install gpiozero
+sudo apt install screen git python3-pip
+sudo pip3 install pifacecommon
+sudo pip3 install pifacedigitalio
+sudo pip3 install paho-mqtt
+sudo pip3 install gpiozero
 ```
 
 ### Installation ckw-ha-mqtt
@@ -51,7 +51,7 @@ git clone https://github.com/ckarrie/ckw-ha-mqtt
 ### Start und Start-Parameter
 
 ```
-python ~/src/ckw-ha-mqtt/mqtt.py -i <IP Adress of MQTT broker> -t <MQTT root opic>
+python3 ~/src/ckw-ha-mqtt/mqtt.py -i <IP Adress of MQTT broker> -t <MQTT root opic>
 ```
 
 - `-i` = IP-Adresse des MQTT-Brokers (z.B. mosquitto), Default ist `192.168.178.71`
@@ -62,20 +62,20 @@ python ~/src/ckw-ha-mqtt/mqtt.py -i <IP Adress of MQTT broker> -t <MQTT root opi
 - `crontab -e`
 - Add
 
-    `@reboot  sleep 60 && /usr/bin/screen -dmS py_mqtt python /home/pi/src/ckw-ha-mqtt/mqtt.py -i 192.168.178.71 -t myhomename`
+    `@reboot  sleep 60 && /usr/bin/screen -dmS py_mqtt python3 /home/pi/src/ckw-ha-mqtt/mqtt.py -i 192.168.178.71 -t myhomename`
     
 - Mittels `screen -r py_mqtt` kann nun direkt auf die `screen`-Instanz zugegriffen werden (Debugging, Live-Logs)
 
 ### Tests
 
 ```
-python ~/src/ckw-ha-mqtt/test_piface.py
+python3 ~/src/ckw-ha-mqtt/test_piface.py
 ```
 
 - Press a button (input button) on the PiFace Digital board to get messages like:
 
     ```
-    pi@pischeune:~ $ python test_piface.py 
+    pi@pischeune:~ $ python3 test_piface.py 
     [2020-12-02 14:29:12.932129] Switch 0 pressed
     [2020-12-02 14:29:15.339102] Switch 0 released
     [2020-12-02 14:29:18.342504] Switch 2 pressed
@@ -88,7 +88,7 @@ python ~/src/ckw-ha-mqtt/test_piface.py
   
 ### Troubleshooting
 
-Der Prozess bricht mit `Ctrl-C` nicht ab, daher muss er in einem neuen Terminal mitels `killall -9 python` gekilled werden
+Der Prozess bricht mit `Ctrl-C` nicht ab, daher muss er in einem neuen Terminal mitels `killall -9 python3` gekilled werden
     
 ## Integration in Homeassistant
 
