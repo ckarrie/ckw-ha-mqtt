@@ -48,7 +48,7 @@ cd ~/src/
 git clone https://github.com/ckarrie/ckw-ha-mqtt
 ```
 
-### Start und Start-Parameter
+### Start und Parameter
 
 ```
 python3 ~/src/ckw-ha-mqtt/mqtt.py -i <IP Adress of MQTT broker> -t <MQTT root opic>
@@ -56,6 +56,8 @@ python3 ~/src/ckw-ha-mqtt/mqtt.py -i <IP Adress of MQTT broker> -t <MQTT root op
 
 - `-i` = IP-Adresse des MQTT-Brokers (z.B. mosquitto), Default ist `192.168.178.71`
 - `-t` = Wurzel-Topic der MQTT-Message, Default ist `winden`
+- `-n 0,1,2,3,...` = Numerischer Zustand der Sensoren z.B. -n 0,1,2,3 liefert einen numerischen Wert (%) 
+  ist z.B. 0=True und 1, 2 und 3=False, wird 25% zurückgeliefert
 
 ### Autostart mit `screen`
 
