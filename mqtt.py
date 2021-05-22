@@ -16,12 +16,17 @@ MQTT_ROOT_TOPIC = 'winden'
 parser = argparse.ArgumentParser(description='')
 parser.add_argument('-i', '--ip_adress', type=str, help='ip address of the host, defaults to "{}"'.format(MQTT_BROKER_HOST), required=False)
 parser.add_argument('-t', '--topic', type=str, help='root topic, defaults to "{}"'.format(MQTT_ROOT_TOPIC), required=False)
+parser.add_argument('-n', '--numerics', type=str, help='add numeric values sensor 0,1,2,3 => 25%, 50%, 75%, 100%', required=False)
 
 args = parser.parse_args()
 if args.ip_adress:
     MQTT_BROKER_HOST = args.ip_adress
 if args.topic:
     MQTT_ROOT_TOPIC = args.topic
+
+numeric_inputs = None
+if args.numerics:
+    numeric_inputs = args.numerics.split(',')
 
 hostname = socket.gethostname()
 mac_address = ':'.join(re.findall('..', '%012x' % uuid.getnode()))
@@ -34,6 +39,7 @@ print("=" * len(startup_msg))
 
 mqtt_topic = '{}/{}/piface/'.format(MQTT_ROOT_TOPIC, hostname)
 mqtt_input_topic = '{}in/'.format(mqtt_topic)
+mqtt_input_num_topic = '{}in_num/'.format(mqtt_topic)
 mqtt_output_topic = '{}out/'.format(mqtt_topic)
 mqtt_device_topic = '{}infos/'.format(mqtt_topic)
 mqtt_device_dt_topic = '{}datetime'.format(mqtt_device_topic)
@@ -126,6 +132,29 @@ def publish_homeassistant(client):
         client.publish(topic, json.dumps(payload))
         print("[MQTT] published topic={}".format(topic))
 
+    if numeric_inputs:
+        numeric_payload = {
+            "name": "{} Numeric".format(hostname),
+            "unique_id": "{}-numeric".format(hostname),
+            "unit_of_measurement": "%",
+            "state_topic": mqtt_input_num_topic,
+            #"device_class": "power_factor",
+            "device_class": "battery",
+            "device": {
+                "identifiers": hostname + "-wlan",
+                "connections": [
+                    ["mac", mac_address]
+                ],
+                "manufacturer": "Raspberry Pi Foundation",
+                "model": "Raspberry Pi 1",
+                "name": hostname,
+                "sw_version": "1"
+            },
+            #"icon": "mdi:temperature-celsius"
+        }
+        numeric_config_topic = "homeassistant/sensor/{}/in_num/config".format(hostname)
+        client.publish(numeric_config_topic, json.dumps(numeric_payload))
+
     # Temp
     temp_payload = {
         "name": "{} Temp CPU".format(hostname),
@@ -200,6 +229,7 @@ def switch_unpressed(event):
 
 def publish_inout_state(client, piface_chip):
     while True:
+        # Output / Relais
         for topic, pin in output_topics.items():
             pin_state = out_states[pin]
             state_text = "false"
@@ -207,6 +237,8 @@ def publish_inout_state(client, piface_chip):
                 state_text = "true"
             client.publish(topic, state_text)
             print("[MQTT] Publish topic='{}' payload='{}'".format(topic, state_text))
+
+        # Input
         for topic, pin in input_topics.items():
             pin_state = piface_chip.input_pins[pin].value
             if in_states[pin] != pin_state:
@@ -218,6 +250,17 @@ def publish_inout_state(client, piface_chip):
             print("[MQTT] Publish topic='{}' payload='{}'".format(topic, state_text))
         client.publish(mqtt_device_dt_topic, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         client.publish(mqtt_device_temp_topic, cpu.temperature)
+
+        # Numeric Input
+        if numeric_inputs:
+            num_value = 0
+            len_numeric_inputs = len(numeric_inputs)
+            for num_pin in numeric_inputs:
+                num_pin_int = int(num_pin)
+                if in_states[num_pin_int] == 1:
+                    num_value += 100. / len_numeric_inputs
+            client.publish(mqtt_input_num_topic, num_value)
+
         time.sleep(20)
 
 
